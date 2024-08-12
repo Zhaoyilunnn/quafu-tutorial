@@ -89,6 +89,38 @@ qnn = QuantumNeuralNetwork(num_qubits, encoder_layer + entangle_layer)
 model = ModuleWrapper(qnn)
 
 
+# Alternatively, you could also customize encoder layer and ansatz layer
+
+# In[ ]:
+
+
+# Create a quantum classifier using pyquafu
+import quafu.elements.element_gates as qeg
+num_qubits = 2
+weights = np.random.randn(num_qubits, num_qubits)
+data = []
+inputs0 = np.random.random((num_qubits * 2,))
+
+# customize encoder layer
+ry0 = qeg.RYGate(0, Parameter("phi_0", inputs0[0], tunable=False))
+ry1 = qeg.RYGate(0, Parameter("phi_1", inputs0[1], tunable=False))
+x = qeg.XGate(1)
+cnot = qeg.CXGate(0, 1)
+rx0 = qeg.RYGate(0, Parameter("phi_3", inputs0[2], tunable=False))
+rx1 = qeg.RYGate(0, Parameter("phi_4", inputs0[3], tunable=False))
+# encoder_layer = [ry0, ry1, x, cnot, rx0, rx1]
+encoder_layer = [ry0, ry1, x]
+
+entangle_layer = BasicEntangleLayers(weights, num_qubits=num_qubits)
+
+# To execute on real quantum machine, set the `backend` parameter
+# qnn1 = QuantumNeuralNetwork(num_qubits, encoder_layer + entangle_layer, backend="<device-name>")
+qnn1 = QuantumNeuralNetwork(num_qubits, encoder_layer + entangle_layer)
+
+# Convert to torch module
+model1 = ModuleWrapper(qnn1)
+
+
 # In[5]:
 
 
@@ -106,7 +138,8 @@ num_epochs = 5
 # Train the classifier
 # Define the loss function and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+#optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model1.parameters(), lr=learning_rate)
 
 # Create data loader
 data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -115,7 +148,8 @@ data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 for epoch in range(num_epochs):
     for inputs, labels in data_loader:
         # Forward pass
-        outputs = model(inputs)
+        #outputs = model(inputs)
+        outputs = model1(inputs)
 
         # Compute the loss
         loss = criterion(outputs, labels)
@@ -143,4 +177,3 @@ with torch.no_grad():
         correct += (predicted == labels.argmax(dim=1)).sum().item()
 
 print(f"Accuracy: {100 * correct / total:.2f}%")
-
