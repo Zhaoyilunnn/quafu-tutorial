@@ -1,25 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-# Import necessary modules
 import numpy as np
-import pytest
 import torch
 from quafu.algorithms.ansatz import QuantumNeuralNetwork
-from quafu.algorithms.gradients import compute_vjp, jacobian
-from quafu.algorithms.interface.torch import ModuleWrapper, TorchTransformer
+from quafu.algorithms.interface.torch import ModuleWrapper
 from quafu.algorithms.templates.angle import AngleEmbedding
 from quafu.algorithms.templates.basic_entangle import BasicEntangleLayers
-from quafu.circuits.quantum_circuit import QuantumCircuit
 from quafu.elements import Parameter
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
-
-
-# In[2]:
 
 
 # Create a synthetic dataset
@@ -46,12 +33,10 @@ def generate_random_dataset(num_inputs, num_samples):
 
     return dataset
 
+
 dataset = generate_random_dataset(2, 100)
 
 x = dataset.tensors[0]
-
-
-# In[3]:
 
 
 # Virtualize the data
@@ -69,13 +54,10 @@ x_class0 = x[y[:, 0] == 1]
 x_class1 = x[y[:, 1] == 1]
 
 # Plot points for each class with different colors
-plt.scatter(x_class0[:, 0], x_class0[:, 1], color='blue', label='Class 0')
-plt.scatter(x_class1[:, 0], x_class1[:, 1], color='red', label='Class 1')
+plt.scatter(x_class0[:, 0], x_class0[:, 1], color="blue", label="Class 0")
+plt.scatter(x_class1[:, 0], x_class1[:, 1], color="red", label="Class 1")
 
-plt.title('Random Dataset')
-
-
-# In[4]:
+plt.title("Random Dataset")
 
 
 # Create a quantum classifier using pyquafu
@@ -91,11 +73,10 @@ model = ModuleWrapper(qnn)
 
 # Alternatively, you could also customize encoder layer and ansatz layer
 
-# In[ ]:
-
 
 # Create a quantum classifier using pyquafu
 import quafu.elements.element_gates as qeg
+
 num_qubits = 2
 weights = np.random.randn(num_qubits, num_qubits)
 data = []
@@ -121,14 +102,8 @@ qnn1 = QuantumNeuralNetwork(num_qubits, encoder_layer + entangle_layer)
 model1 = ModuleWrapper(qnn1)
 
 
-# In[5]:
-
-
 # Virtualize the circuit
 qnn.draw_circuit()
-
-
-# In[6]:
 
 
 learning_rate = 0.1
@@ -138,7 +113,7 @@ num_epochs = 5
 # Train the classifier
 # Define the loss function and optimizer
 criterion = nn.CrossEntropyLoss()
-#optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 optimizer = torch.optim.Adam(model1.parameters(), lr=learning_rate)
 
 # Create data loader
@@ -148,7 +123,7 @@ data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 for epoch in range(num_epochs):
     for inputs, labels in data_loader:
         # Forward pass
-        #outputs = model(inputs)
+        # outputs = model(inputs)
         outputs = model1(inputs)
 
         # Compute the loss
@@ -162,6 +137,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         print(f" ----- Loss: {loss.item()}")
+        print(model1.weights)
 
     # Print the loss
     print(f"Epoch {epoch + 1}/{num_epochs}: Loss = {loss.item()}")
