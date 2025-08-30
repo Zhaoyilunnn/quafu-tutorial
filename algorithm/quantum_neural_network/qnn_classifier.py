@@ -137,7 +137,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         print(f" ----- Loss: {loss.item()}")
-        print(model1.weights)
+        print(model1.weights[0][0].detach().numpy())
 
     # Print the loss
     print(f"Epoch {epoch + 1}/{num_epochs}: Loss = {loss.item()}")
